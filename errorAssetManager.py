@@ -55,12 +55,12 @@ def main(argv):
 	if not os.path.exists(outputDir) :
 		os.makedirs(outputDir)
 
-	LoadAssetBundleFromFileRoot = outputDir + "/LoadAssetBundleFromFile"
-	if not os.path.exists(LoadAssetBundleFromFileRoot) :
-		os.makedirs(LoadAssetBundleFromFileRoot)
+	copyDestDir = outputDir + "/AssetManager"
+	if not os.path.exists(copyDestDir) :
+		os.makedirs(copyDestDir)
 
 
-	LoadAssetBundleFromFileDict = {}
+	collectDict = {}
 
 	dirs = os.listdir( inputDir )
 	for file in dirs:
@@ -69,36 +69,39 @@ def main(argv):
 			f = open(path, mode='r')
 			content = f.read()
 
-			# LoadAssetBundleFromFile
-			matchObj = re.match( r'\[Error\] LoadAssetBundleFromFile assetBundle=null,  assetBundleName=(.*),', content, re.M|re.I)
+			matchObj = re.match( r'\[Error\] AssetManager_AssetBundle LoadAssetSync obj=null, assetBundleName=(.*),', content, re.M|re.I)
 			if matchObj:
 				assetBundlue = matchObj.group(1)
-				if not LoadAssetBundleFromFileDict.has_key(assetBundlue) :
-					LoadAssetBundleFromFileDict[assetBundlue] = 1
+				# collectDict
+				if not collectDict.has_key(assetBundlue) :
+					collectDict[assetBundlue] = 1
 				else:
-					LoadAssetBundleFromFileDict[assetBundlue] = LoadAssetBundleFromFileDict[assetBundlue] + 1
+					collectDict[assetBundlue] = collectDict[assetBundlue] + 1
 
 
 			f.close()
 
 			if move and matchObj :
-				dest = os.path.join(LoadAssetBundleFromFileRoot, file)
+				dest = os.path.join(copyDestDir, file)
 				shutil.move(path, dest)
 
 	totalAll = 0
 	totalLine = 0
-	fo = open(outputDir + "/LoadAssetBundleFromFileDict.txt", 'w')
-	for assetBundle in LoadAssetBundleFromFileDict.keys() :
-		print "%d 	%s" % (LoadAssetBundleFromFileDict[assetBundle], assetBundle)
-		fo.write( assetBundle + "\n")
-		totalAll = totalAll + LoadAssetBundleFromFileDict[assetBundle]
-		totalLine = totalLine + 1
 
+	fo = open(outputDir + "/AssetManager.txt", 'w')
+	for key in collectDict.keys() :
+		print "%d 	%s" % (collectDict[key], key)
+		fo.write( "%d 	%s\n" % (collectDict[key], key) )
+		totalAll = totalAll + collectDict[key]
+		totalLine = totalLine + 1
+	fo.close()
+	print
 
 	print
-	print "LoadAssetBundleFromFileDict: totalAll=%d, 	totalLine=%d" % (totalAll, totalLine)
+	print "collectDict: totalAll=%d, 	totalLine=%d" % (totalAll, totalLine)
 
-	fo.close()
+	
+
 			
 
 

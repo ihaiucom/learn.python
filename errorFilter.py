@@ -3,6 +3,7 @@
 
 import os
 import sys
+import getopt
 import re
 import shutil
 
@@ -60,8 +61,31 @@ def classifySum(sumPath):
 				print("copying :" + cscpPath + "...")
 				shutil.copy(src, cscpPath)
 
-def main():
-	fileDir = os.getcwd()
+def main(argv):
+
+
+
+	fileDir = ''
+
+	try:
+		pts, args = getopt.getopt(argv, "hr:", ['root='])
+	except getopt.GetoptError:
+		print "errorLoad.py -r <root> -i <inputDir> -o <outputDir>"
+		sys.exit(2)
+
+	for opt, arg in pts:
+
+		if opt == '-h':
+			print "errorFilter.py -r <root> "
+			sys.exit()
+		elif opt in ['-r', '--root'] :
+			root = arg
+
+
+	if fileDir  == '':
+		fileDir = os.getcwd()
+
+
 	files = os.listdir(fileDir)
 
 	# luaPath = fileDir + "/lua/"
@@ -145,4 +169,4 @@ def main():
 
 	classifySum(sumFile)
 
-main()
+main(sys.argv[1:])

@@ -16,13 +16,13 @@ def main(argv):
 	try:
 		pts, args = getopt.getopt(argv, "hr:i:o:m:", ['root=', 'idir=', 'odir=', 'move='])
 	except getopt.GetoptError:
-		print "errorLoad.py -r <root> -i <inputDir> -o <outputDir>"
+		print "errorLuaGC.py -r <root> -i <inputDir> -o <outputDir>"
 		sys.exit(2)
 
 	for opt, arg in pts:
 
 		if opt == '-h':
-			print "errorLoad.py -r <root> -i <inputDir> -o <outputDir>"
+			print "errorLuaGC.py -r <root> -i <inputDir> -o <outputDir>"
 			sys.exit()
 		elif opt in ['-r', '--root'] :
 			root = arg
@@ -55,13 +55,14 @@ def main(argv):
 	if not os.path.exists(outputDir) :
 		os.makedirs(outputDir)
 
-	LoadAssetBundleFromFileRoot = outputDir + "/LoadAssetBundleFromFile"
-	if not os.path.exists(LoadAssetBundleFromFileRoot) :
-		os.makedirs(LoadAssetBundleFromFileRoot)
+	copyDestDir = outputDir + "/更新资源读取资源列表失败"
+	if not os.path.exists(copyDestDir) :
+		os.makedirs(copyDestDir)
 
 
-	LoadAssetBundleFromFileDict = {}
+	collectDict = {}
 
+	num = 0
 	dirs = os.listdir( inputDir )
 	for file in dirs:
 		path = os.path.join(inputDir, file)
@@ -69,36 +70,45 @@ def main(argv):
 			f = open(path, mode='r')
 			content = f.read()
 
-			# LoadAssetBundleFromFile
-			matchObj = re.match( r'\[Error\] LoadAssetBundleFromFile assetBundle=null,  assetBundleName=(.*),', content, re.M|re.I)
+			matchObj = re.search( r'\[Error\] 更新资源读取资源列表失败 updateAssetListUrl=(.*),', content, re.M|re.I)
 			if matchObj:
-				assetBundlue = matchObj.group(1)
-				if not LoadAssetBundleFromFileDict.has_key(assetBundlue) :
-					LoadAssetBundleFromFileDict[assetBundlue] = 1
-				else:
-					LoadAssetBundleFromFileDict[assetBundlue] = LoadAssetBundleFromFileDict[assetBundlue] + 1
+				num = num + 1
 
+
+				msg = matchObj.group(1)
+				# collectDict
+				if not collectDict.has_key(msg) :
+					collectDict[msg] = 1
+				else:
+					collectDict[msg] = collectDict[msg] + 1
 
 			f.close()
 
 			if move and matchObj :
-				dest = os.path.join(LoadAssetBundleFromFileRoot, file)
+				dest = os.path.join(copyDestDir, file)
 				shutil.move(path, dest)
+
+
+
 
 	totalAll = 0
 	totalLine = 0
-	fo = open(outputDir + "/LoadAssetBundleFromFileDict.txt", 'w')
-	for assetBundle in LoadAssetBundleFromFileDict.keys() :
-		print "%d 	%s" % (LoadAssetBundleFromFileDict[assetBundle], assetBundle)
-		fo.write( assetBundle + "\n")
-		totalAll = totalAll + LoadAssetBundleFromFileDict[assetBundle]
+
+	fo = open(outputDir + "/更新资源读取资源列表失败.txt", 'w')
+	for key in collectDict.keys() :
+		print "%d 	%s" % (collectDict[key], key)
+		fo.write( "%d 	%s\n" % (collectDict[key], key))
+		totalAll = totalAll + collectDict[key]
 		totalLine = totalLine + 1
+	fo.close()
+	print
 
 
 	print
-	print "LoadAssetBundleFromFileDict: totalAll=%d, 	totalLine=%d" % (totalAll, totalLine)
+	print "num: %d" % (num)
+	print
+	print "collectDict: totalAll=%d, 	totalLine=%d" % (totalAll, totalLine)
 
-	fo.close()
 			
 
 
